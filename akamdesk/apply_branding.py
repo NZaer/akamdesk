@@ -69,6 +69,10 @@ replace("flutter/lib/desktop/pages/desktop_home_page.dart",
         "Color.fromARGB(255, 226, 66, 188),\n                  Color.fromARGB(255, 244, 114, 124),",
         "Color.fromARGB(255, 0, 151, 153),\n                  Color.fromARGB(255, 2, 33, 44),")
 
+# Hide the "Powered by RustDesk" line under the logo
+replace(common, 'if (bind.mainGetBuildinOption(key: "hide-powered-by-me") == \'Y\') {',
+        "if (true) {")
+
 # Window title bar text
 replace("flutter/lib/desktop/widgets/tabbar_widget.dart",
         '"RustDesk",\n                              style: TextStyle(fontSize: 13),',
