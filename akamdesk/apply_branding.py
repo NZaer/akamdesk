@@ -37,6 +37,13 @@ def replace(rel_path, old, new):
     print(f"[branding] {rel_path}")
 
 
+def append(rel_path, text):
+    path = ROOT / rel_path
+    with path.open("a", encoding="utf-8") as f:
+        f.write(text)
+    print(f"[branding] {rel_path} (appended)")
+
+
 def copy(asset, *targets):
     for target in targets:
         shutil.copyfile(ASSETS / asset, ROOT / target)
@@ -77,6 +84,48 @@ replace("flutter/lib/desktop/pages/desktop_home_page.dart",
 # Hide the "Powered by RustDesk" line under the logo
 replace(common, 'if (bind.mainGetBuildinOption(key: "hide-powered-by-me") == \'Y\') {',
         "if (true) {")
+
+# Our own server is not the public RustDesk server: hides the
+# "set up your own server" tip and lifts public-server relay limits
+replace("src/common.rs",
+        'crate::get_custom_rendezvous_server(get_option("custom-rendezvous-server")).is_empty()\n}',
+        "false\n}")
+
+# Right-to-left layout for Persian/Arabic/Hebrew in the main, install and
+# connection-manager windows. Remote session windows stay left-to-right.
+append(common, '''
+bool akamIsRtlUi() {
+  var lang = bind.mainGetLocalOption(key: kCommConfKeyLang);
+  if (lang.isEmpty || lang == 'default') {
+    lang = WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+  }
+  lang = lang.toLowerCase();
+  return lang.startsWith('fa') ||
+      lang.startsWith('ar') ||
+      lang.startsWith('he') ||
+      lang.startsWith('ur');
+}
+
+Widget akamDirectionality(Widget child) => Directionality(
+    textDirection: akamIsRtlUi() ? TextDirection.rtl : TextDirection.ltr,
+    child: child);
+''')
+main_dart = "flutter/lib/main.dart"
+replace(main_dart,
+        "        child = botToastBuilder(context, child);\n        return child;\n      },",
+        "        child = botToastBuilder(context, child);\n"
+        "        if (home is InstallPage || home is DesktopServerPage) {\n"
+        "          child = akamDirectionality(child);\n"
+        "        }\n"
+        "        return child;\n      },")
+replace(main_dart,
+        "                  child = botToastBuilder(context, child);\n"
+        "                  if ((isDesktop && desktopType == DesktopType.main) ||",
+        "                  child = botToastBuilder(context, child);\n"
+        "                  if (isDesktop && desktopType == DesktopType.main) {\n"
+        "                    child = akamDirectionality(child);\n"
+        "                  }\n"
+        "                  if ((isDesktop && desktopType == DesktopType.main) ||")
 
 # Window title bar text
 replace("flutter/lib/desktop/widgets/tabbar_widget.dart",

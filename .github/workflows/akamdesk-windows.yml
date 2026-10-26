@@ -162,13 +162,18 @@ jobs:
           name: topmostwindow-artifacts-x64
           path: "./rustdesk"
 
+      # The installer copies this folder and then launches <AppName>.exe,
+      # so the main executable must already carry the app name.
+      - name: Rename main executable
+        run: mv ./rustdesk/rustdesk.exe ./rustdesk/${{ env.APP_NAME }}.exe
+
       - name: Build portable executable
         shell: bash
         run: |
           sed -i '/dpiAware/d' res/manifest.xml
           pushd ./libs/portable
           pip3 install -r requirements.txt
-          python3 ./generate.py -f ../../rustdesk/ -o . -e ../../rustdesk/rustdesk.exe
+          python3 ./generate.py -f ../../rustdesk/ -o . -e ../../rustdesk/${{ env.APP_NAME }}.exe
           popd
           mkdir -p ./Output
           mv ./target/release/rustdesk-portable-packer.exe ./Output/${{ env.APP_NAME }}-${{ env.VERSION }}-x86_64.exe
@@ -178,7 +183,6 @@ jobs:
 
       - name: Build msi
         run: |
-          mv ./rustdesk/rustdesk.exe ./rustdesk/${{ env.APP_NAME }}.exe
           pushd ./res/msi
           python preprocess.py --arp -d ../../rustdesk --app-name ${{ env.APP_NAME }}
           nuget restore msi.sln
