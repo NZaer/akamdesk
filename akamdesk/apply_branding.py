@@ -17,6 +17,7 @@ APP_NAME = "AkamDesk"
 COMPANY = "Akam Data"
 ID_SERVER = "desk.akamdata.com"
 PUBLIC_KEY = "yxgsv8GIJsj6Ln8AQcLqpq0y7OE07zK8AM9LIzIp3Ek="
+DEFAULT_LANG = "fa"
 
 TEAL = "0xFF009799"
 TEAL_50 = "0x77009799"
@@ -50,6 +51,10 @@ replace(cfg, 'pub const RENDEZVOUS_SERVERS: &[&str] = &["rs-ny.rustdesk.com"];',
         f'pub const RENDEZVOUS_SERVERS: &[&str] = &["{ID_SERVER}"];')
 replace(cfg, 'pub const RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";',
         f'pub const RS_PUB_KEY: &str = "{PUBLIC_KEY}";')
+# Persian UI by default; users can still switch to English in Settings > General > Language
+replace(cfg, "pub static ref DEFAULT_LOCAL_SETTINGS: RwLock<HashMap<String, String>> = Default::default();",
+        f'pub static ref DEFAULT_LOCAL_SETTINGS: RwLock<HashMap<String, String>> = '
+        f'RwLock::new(HashMap::from([("lang".to_owned(), "{DEFAULT_LANG}".to_owned())]));')
 
 # Colors
 common = "flutter/lib/common.dart"
