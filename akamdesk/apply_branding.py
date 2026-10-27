@@ -18,6 +18,7 @@ COMPANY = "Akam Data"
 ID_SERVER = "desk.akamdata.com"
 PUBLIC_KEY = "yxgsv8GIJsj6Ln8AQcLqpq0y7OE07zK8AM9LIzIp3Ek="
 DEFAULT_LANG = "fa"
+DEFAULT_THEME = "light"
 
 TEAL = "0xFF009799"
 TEAL_50 = "0x77009799"
@@ -61,7 +62,8 @@ replace(cfg, 'pub const RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQ
 # Persian UI by default; users can still switch to English in Settings > General > Language
 replace(cfg, "pub static ref DEFAULT_LOCAL_SETTINGS: RwLock<HashMap<String, String>> = Default::default();",
         f'pub static ref DEFAULT_LOCAL_SETTINGS: RwLock<HashMap<String, String>> = '
-        f'RwLock::new(HashMap::from([("lang".to_owned(), "{DEFAULT_LANG}".to_owned())]));')
+        f'RwLock::new(HashMap::from([("lang".to_owned(), "{DEFAULT_LANG}".to_owned()), '
+        f'("theme".to_owned(), "{DEFAULT_THEME}".to_owned())]));')
 
 # Colors
 common = "flutter/lib/common.dart"
@@ -79,7 +81,58 @@ replace(common, "  return Color(0xFF2C8CFF);\n}",
         f"  return Color({TEAL});\n}}")
 replace("flutter/lib/desktop/pages/desktop_home_page.dart",
         "Color.fromARGB(255, 226, 66, 188),\n                  Color.fromARGB(255, 244, 114, 124),",
-        "Color.fromARGB(255, 0, 151, 153),\n                  Color.fromARGB(255, 2, 33, 44),")
+        "Color.fromARGB(255, 0, 151, 153),\n                  Color.fromARGB(255, 0, 116, 120),")
+
+# Light theme polish: Vazirmatn font, brand-tinted surfaces, rounder corners
+replace(common, "static const Color grayBg = Color(0xFFEFEFF2);",
+        "static const Color grayBg = Color(0xFFEEF4F4);")
+replace(common, "    highlight: Color(0xFFE5E5E5),\n    drag_indicator: Colors.grey[800],",
+        "    highlight: Color(0xFFDDEDED),\n    drag_indicator: Colors.grey[800],")
+replace(common, "    useMaterial3: false,\n    brightness: Brightness.light,",
+        "    useMaterial3: false,\n    fontFamily: 'Vazirmatn',\n    brightness: Brightness.light,")
+replace(common, "    useMaterial3: false,\n    brightness: Brightness.dark,",
+        "    useMaterial3: false,\n    fontFamily: 'Vazirmatn',\n    brightness: Brightness.dark,")
+replace(common, "primary: Colors.blue, secondary: accent, background: grayBg),",
+        "primary: accent, secondary: accent, background: grayBg),")
+replace(common, "      primary: Colors.blue,\n      secondary: accent,",
+        "      primary: accent,\n      secondary: accent,")
+replace("flutter/lib/desktop/pages/connection_page.dart",
+        """                SizedBox(
+                  height: 28.0,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      onConnect();
+                    },
+                    child: Text(translate("Connect")),""",
+        """                SizedBox(
+                  height: 36.0,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      onConnect();
+                    },
+                    child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: Text(translate("Connect"),
+                            style: const TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.w600))),""")
+replace("flutter/pubspec.yaml",
+        "    - family: More\n      fonts:\n        - asset: assets/more.ttf\n",
+        "    - family: More\n      fonts:\n        - asset: assets/more.ttf\n"
+        "    - family: Vazirmatn\n      fonts:\n"
+        "        - asset: assets/Vazirmatn-Regular.ttf\n"
+        "        - asset: assets/Vazirmatn-Medium.ttf\n          weight: 500\n"
+        "        - asset: assets/Vazirmatn-Bold.ttf\n          weight: 700\n")
+replace("flutter/lib/desktop/pages/connection_page.dart",
+        """                Container(
+                  height: 28.0,
+                  width: 28.0,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Theme.of(context).dividerColor),""",
+        """                Container(
+                  height: 36.0,
+                  width: 36.0,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Theme.of(context).dividerColor),""")
 
 # Hide the "Powered by RustDesk" line under the logo
 replace(common, 'if (bind.mainGetBuildinOption(key: "hide-powered-by-me") == \'Y\') {',
@@ -154,5 +207,7 @@ copy("128x128.png", "res/128x128.png")
 copy("128x128@2x.png", "res/128x128@2x.png")
 copy("logo_light.png", "flutter/assets/logo_light.png")
 copy("logo_dark.png", "flutter/assets/logo_dark.png")
+for font in ("Vazirmatn-Regular.ttf", "Vazirmatn-Medium.ttf", "Vazirmatn-Bold.ttf"):
+    copy(f"fonts/{font}", f"flutter/assets/{font}")
 
 print(f"[branding] done: {APP_NAME} -> {ID_SERVER}")
