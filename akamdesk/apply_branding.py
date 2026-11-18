@@ -180,6 +180,20 @@ replace(main_dart,
         "                  }\n"
         "                  if ((isDesktop && desktopType == DesktopType.main) ||")
 
+# ID digit groups use a no-break space: in a right-to-left layout a plain
+# space lets the bidi algorithm reverse the groups (436 213 150 -> 150 213 436)
+idf = "flutter/lib/common/formatter/id_formatter.dart"
+replace(idf, "  String id2 = id.replaceAll(' ', '');", "  String id2 = id.replaceAll(RegExp(r'\\s'), '');")
+replace(idf, 'newID += " ${id2.substring(i, i + 3)}";', 'newID += "\\u00A0${id2.substring(i, i + 3)}";')
+replace(idf, "  return id.replaceAll(' ', '');", "  return id.replaceAll(RegExp(r'\\s'), '');")
+replace(common, "  id = id.replaceAll(' ', '');", "  id = id.replaceAll(RegExp(r'\\s'), '');")
+replace("flutter/lib/desktop/pages/connection_page.dart",
+        'textEditingValue.text.replaceAll(" ", "");',
+        "textEditingValue.text.replaceAll(RegExp(r'\\s'), '');")
+replace("flutter/lib/desktop/pages/desktop_home_page.dart",
+        "ClipboardData(text: model.serverId.text));",
+        "ClipboardData(text: model.serverId.text.replaceAll('\\u00A0', ' ')));")
+
 # Window title bar text
 replace("flutter/lib/desktop/widgets/tabbar_widget.dart",
         '"RustDesk",\n                              style: TextStyle(fontSize: 13),',
